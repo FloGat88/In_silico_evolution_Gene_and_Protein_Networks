@@ -28,7 +28,7 @@ The extended version of the algorithm relies on three libraries: boost, eigen an
 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 \cf0 {{\NeXTGraphic types_of_reactions.png \width12720 \height11580 \appleattachmentpadding0 \appleembedtype0 \appleaqc
-}¬}\
+}Â¬}\
 Types of reactions to built up the networks and their mathematical representations in the Ode System.\
 \
  \
