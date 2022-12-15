@@ -1,0 +1,55 @@
+#include "mex.hpp"
+#include "mexAdapter.hpp"
+
+using matlab::mex::ArgumentList;
+using namespace matlab::data;
+
+class MexFunction : public matlab::mex::Function {
+    ArrayFactory factory;
+
+public:
+    void operator()(ArgumentList outputs, ArgumentList inputs) {
+        const TypedArray<double> x = inputs[0];
+        const TypedArray<double> t = inputs[1];
+        const TypedArray<double> u = inputs[2];
+        const TypedArray<double> dudx = inputs[3];
+        const TypedArray<double> OdeTransitions_rates = inputs[4];
+        const TypedArray<double> OdeReactions_rates = inputs[5];
+        const TypedArray<double> OdeDecays_rates = inputs[6];
+        const TypedArray<short> OdeTransitions = inputs[7];
+        const TypedArray<short> OdeReactions = inputs[8];
+        const TypedArray<short> OdeDecays = inputs[9];
+        const TypedArray<double> D_eff = inputs[10];
+        const TypedArray<short> paraN = inputs[11];
+        short N_elems = paraN[12];
+        TypedArray<double>  c = factory.createArray<double>( {std::size_t(N_elems),1} );
+        TypedArray<double>  f = factory.createArray<double>( {std::size_t(N_elems),1} );
+        TypedArray<double>  s = factory.createArray<double>( {std::size_t(N_elems),1} );
+            
+// diffusion dynamics
+        for(int i=0; i<N_elems; ++i)   { 
+             c[i] = 1;
+             f[i] = D_eff[i]*dudx[i];
+             s[i] = 0;
+        }     
+// reaction dynamics
+            for(i=0; i<OdeTransitions_rates.getNumberOfElements(); ++i)   {      // contribution of Transitions
+                double w = OdeTransitions_rates[i] * u[OdeTransitions[0][i]];
+                s[OdeTransitions[0][i]] -= w;
+                s[OdeTransitions[1][i]] += w;
+            }
+            for(i=0; i<OdeReactions_rates.getNumberOfElements(); ++i)   {      // contribution of Reactions
+                double w = OdeReactions_rates[i] * u[OdeReactions[0][i]] * u[OdeReactions[1][i]];
+                s[OdeReactions[0][i]] -= w;
+                s[OdeReactions[1][i]] -= w;
+                s[OdeReactions[2][i]] += w;
+            }
+            for(i=0; i<OdeDecays_rates.getNumberOfElements(); ++i)   {       // contribution of Decays
+                double w = OdeDecays_rates[i] * u[OdeDecays[0][i]];
+                s[OdeDecays[0][i]] -= w;
+                s[OdeDecays[1][i]] += w;
+                s[OdeDecays[2][i]] += w;
+            }              
+        outputs[0] = dxdt;
+    };
+};
